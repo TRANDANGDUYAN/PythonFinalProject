@@ -57,7 +57,8 @@ class StudentController:
     def check_student_exists(self, student_id: str) -> bool:
         clean_id = self._clean_text(student_id)
         query = "SELECT 1 FROM Students WHERE StudentID = ?"
-        result = self.db.execute_read(query, (clean_id,))
+
+        result = self.db.fetch_query(query, (clean_id,))
         return bool(result)
 
     def get_all_students(self) -> Optional[List[Tuple[Any, ...]]]:
@@ -66,7 +67,8 @@ class StudentController:
             FROM Students
             ORDER BY ClassID ASC, FullName ASC
         """
-        raw_rows = self.db.execute_read(query)
+
+        raw_rows = self.db.fetch_query(query)
         return self._process_fetched_rows(raw_rows)
 
     def add_student(self, student_id: str, fullname: str, dob: str, gender: str, class_id: str, contact: str) -> bool:
@@ -86,8 +88,8 @@ class StudentController:
         """
         params = (clean_id, formatted_name, db_ready_dob, 
                   self._clean_text(gender), clean_class, self._clean_text(contact))
-        
-        return self.db.execute_write(query, params)
+
+        return self.db.execute_query(query, params)
 
     def update_student(self, student_id: str, fullname: str, dob: str, gender: str, class_id: str, contact: str) -> bool:
         clean_id = self._clean_text(student_id)
@@ -102,8 +104,7 @@ class StudentController:
         """
         params = (formatted_name, db_ready_dob, self._clean_text(gender), 
                   clean_class, self._clean_text(contact), clean_id)
-                  
-        return self.db.execute_write(query, params)
+        return self.db.execute_query(query, params)
 
     def delete_student(self, student_id: str) -> bool:
         clean_id = self._clean_text(student_id)
@@ -113,7 +114,7 @@ class StudentController:
             return False
 
         query = "DELETE FROM Students WHERE StudentID = ?"
-        return self.db.execute_write(query, (clean_id,))
+        return self.db.execute_query(query, (clean_id,))
 
     def search_students(self, keyword: str) -> Optional[List[Tuple[Any, ...]]]:
         clean_keyword = self._clean_text(keyword)
@@ -129,8 +130,7 @@ class StudentController:
         """
         search_pattern = f"%{clean_keyword}%"
         params = (search_pattern, search_pattern, search_pattern, search_pattern)
-        
-        raw_rows = self.db.execute_read(query, params)
+        raw_rows = self.db.fetch_query(query, params)
         return self._process_fetched_rows(raw_rows)
 
 if __name__ == "__main__":
