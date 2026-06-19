@@ -36,7 +36,7 @@ class Database:
             return
 
         self.server: str = 'localhost' 
-        self.database: str = 'PYTHONFINAL'
+        self.database: str = 'PYTHON'
         self.driver: str = '{ODBC Driver 17 for SQL Server}'
 
         self.connection_string: str = (
