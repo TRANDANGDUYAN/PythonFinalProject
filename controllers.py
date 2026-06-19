@@ -112,7 +112,7 @@ class StudentController:
         if not self.check_student_exists(clean_id):
             logger.warning(f"Deletion rejected. Student ID {clean_id} not found.")
             return False
-
+        self.db.execute_query("DELETE FROM Grades WHERE StudentID = ?", (clean_id,))
         query = "DELETE FROM Students WHERE StudentID = ?"
         return self.db.execute_query(query, (clean_id,))
 
@@ -185,6 +185,12 @@ class StudentController:
                 VALUES (?, ?, ?, ?, ?, ?)
             """
             return self.db.execute_query(insert_query, (clean_student, clean_subject, cc, bt, gk, ck))
+        
+    def delete_grade(self, student_id: str, subject_id: str) -> bool:
+        clean_student = self._clean_text(student_id)
+        clean_subject = self._clean_text(subject_id)
+        query = "DELETE FROM Grades WHERE StudentID = ? AND SubjectID = ?"
+        return self.db.execute_query(query, (clean_student, clean_subject))
         
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
