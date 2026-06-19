@@ -7,7 +7,7 @@ logger = logging.getLogger("DatabaseManager")
 class Database:
     def __init__(self):
 
-        self.server = 'LAPTOP-2SSGG903\\MSSQLSERVER2025' 
+        self.server = '127.0.0.1,1433' 
         self.database = 'PYTHON'
         self.driver = '{ODBC Driver 17 for SQL Server}'
         self.connection = None
