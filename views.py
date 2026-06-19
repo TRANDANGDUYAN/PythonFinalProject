@@ -292,17 +292,19 @@ class StudentView:
 
     def show_statistics(self):
         rows = self.controller.get_all_students()
-        if not rows: return
+        if not rows: 
+            messagebox.showwarning("Thông báo", "Không có dữ liệu sinh viên để thống kê!")
+            return
         
         self.set_status("Generating statistical chart...")
-        male, female, other = 0, 0, 0
+
+        class_counts = {}
         for row in rows:
-            gender = str(row[3]).strip().title()
-            if gender == "Male": male += 1
-            elif gender == "Female": female += 1
-            else: other += 1
-            
-        DataVisualizer.plot_gender_ratio(male, female, other)
+            class_id = str(row[4]).strip().upper()
+            if class_id:
+                class_counts[class_id] = class_counts.get(class_id, 0) + 1
+
+        DataVisualizer.plot_class_statistics(class_counts)
         self.set_status("Statistics displayed.")
 
     def open_grading_window(self):

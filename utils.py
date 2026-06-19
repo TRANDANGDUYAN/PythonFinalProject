@@ -66,51 +66,36 @@ class DataExporter:
 
 class DataVisualizer:
     @staticmethod
-    def plot_gender_ratio(male_count: int, female_count: int, other_count: int = 0):
-        total = male_count + female_count + other_count
-        if total == 0:
-            logger.warning("Visualization aborted: Zero students found.")
+    def plot_class_statistics(class_counts):
+        if not class_counts:
             messagebox.showinfo("Information", "No student data available for statistics.")
             return
-        logger.info(f"Generating statistical chart for {total} students.")
-        labels = []
-        sizes = []
-        colors = []
-        explode = []
-        
-        if male_count > 0:
-            labels.append(f'Male ({male_count})')
-            sizes.append(male_count)
-            colors.append('#2E86C1')
-            explode.append(0.05)
-        if female_count > 0:
-            labels.append(f'Female ({female_count})')
-            sizes.append(female_count)
-            colors.append('#E74C3C')
-            explode.append(0.05)
-        if other_count > 0:
-            labels.append(f'Other ({other_count})')
-            sizes.append(other_count)
-            colors.append('#F1C40F')
-            explode.append(0.05)
             
+        import matplotlib.pyplot as plt
+
+        labels = [f"{cls} ({count})" for cls, count in class_counts.items()]
+        sizes = list(class_counts.values())
+        colors = ['#2E86C1', '#E74C3C', '#F1C40F', '#107C41', '#ff9900', '#7a2485', '#00b7c3']
+        explode = [0.05] * len(labels)
+        
         fig, ax = plt.subplots(figsize=(7, 6), facecolor='#F8F9F9')
+
         wedges, texts, autotexts = ax.pie(
-            sizes,
-            labels=labels,
-            colors=colors,
+            sizes, 
+            labels=labels, 
             autopct='%1.1f%%',
             startangle=140,
+            colors=colors[:len(labels)],
             explode=explode,
             shadow=True,
             textprops={'fontsize': 11, 'fontweight': 'bold', 'color': '#333333'}
         )
+        
         for autotext in autotexts:
             autotext.set_color('white')
             
-        plt.title('STUDENT GENDER RATIO ANALYSIS', fontsize=14, fontweight='bold', color='#1A5276', pad=20)
-        ax.axis('equal')
+        plt.title('TỶ LỆ PHÂN BỔ SINH VIÊN THEO LỚP HỌC', fontsize=14, fontweight='bold', color='#1A5276', pad=20)
+        ax.axis('equal') 
         fig.canvas.manager.set_window_title('System Statistics')
         plt.tight_layout()
         plt.show()
-        logger.info("Statistical window closed.")
