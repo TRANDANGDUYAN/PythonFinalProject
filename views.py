@@ -92,10 +92,11 @@ class StudentView:
 
         util_frame = tk.Frame(left_frame, pady=5)
         util_frame.pack(fill=tk.X)
-        util_frame.columnconfigure((0, 1), weight=1)
+        util_frame.columnconfigure((0, 1, 2), weight=1)
         
         tk.Button(util_frame, text="Gender Statistics", bg="#107C41", fg="white", font=("Segoe UI", 10, "bold"), command=self.show_statistics, cursor="hand2").grid(row=0, column=0, padx=5, pady=5, sticky="ew")
         tk.Button(util_frame, text="Export to Excel", bg="#0078D4", fg="white", font=("Segoe UI", 10, "bold"), command=self.export_data, cursor="hand2").grid(row=0, column=1, padx=5, pady=5, sticky="ew")
+        tk.Button(util_frame, text="Manage Grades", bg="#ff9900", fg="black", font=("Segoe UI", 10, "bold"), command=self.open_grading_window, cursor="hand2").grid(row=0, column=2, padx=5, pady=5, sticky="ew")
 
     def _build_right_panel(self, parent):
         right_frame = ttk.LabelFrame(parent, text=" Student List ")
@@ -196,7 +197,7 @@ class StudentView:
             return False
             
         dob = self.var_dob.get()
-        if dob: # Chỉ validate nếu ô này có nhập dữ liệu
+        if dob: 
             try:
                 datetime.strptime(dob, "%d-%m-%Y")
             except ValueError:
@@ -303,3 +304,92 @@ class StudentView:
             
         DataVisualizer.plot_gender_ratio(male, female, other)
         self.set_status("Statistics displayed.")
+
+    def open_grading_window(self):
+        selected_row = self.student_table.focus() 
+        if not selected_row:
+            messagebox.showwarning("Warning", "Please select a student from the list to manage grades!")
+            return
+
+        row_data = self.student_table.item(selected_row)['values']
+        student_id = row_data[0]
+        student_name = row_data[1]
+
+        grade_window = tk.Toplevel(self.root)
+        grade_window.title(f"Manage Grades - {student_name} ({student_id})")
+        grade_window.geometry("550x450")
+        grade_window.grab_set() 
+
+        frame_top = tk.Frame(grade_window, padx=15, pady=15)
+        frame_top.pack(fill=tk.X)
+
+        tk.Label(frame_top, text="Subject:", font=("Segoe UI", 10, "bold")).grid(row=0, column=0, pady=5, sticky=tk.W)
+        
+        cbo_subjects = ttk.Combobox(frame_top, width=30, state="readonly", font=("Segoe UI", 10))
+        cbo_subjects.grid(row=0, column=1, padx=10, pady=5)
+        
+        subjects_data = self.controller.get_all_subjects()
+        subject_dict = {}
+        if subjects_data:
+            subject_dict = {f"{row[0]} - {row[1]}": row[0] for row in subjects_data}
+            cbo_subjects['values'] = list(subject_dict.keys())
+        
+        tk.Label(frame_top, text="Score:", font=("Segoe UI", 10, "bold")).grid(row=1, column=0, pady=5, sticky=tk.W)
+        txt_score = ttk.Entry(frame_top, width=15, font=("Segoe UI", 10))
+        txt_score.grid(row=1, column=1, padx=10, pady=5, sticky=tk.W)
+
+        frame_mid = tk.Frame(grade_window, padx=15, pady=5)
+        frame_mid.pack(fill=tk.BOTH, expand=True)
+        
+        columns = ("SubjectID", "SubjectName", "Score")
+        tree_grades = ttk.Treeview(frame_mid, columns=columns, show="headings", height=10)
+        tree_grades.heading("SubjectID", text="Subject ID")
+        tree_grades.heading("SubjectName", text="Subject Name")
+        tree_grades.heading("Score", text="Score")
+        tree_grades.column("SubjectID", width=80, anchor=tk.CENTER)
+        tree_grades.column("SubjectName", width=250)
+        tree_grades.column("Score", width=100, anchor=tk.CENTER)
+        tree_grades.pack(fill=tk.BOTH, expand=True, side=tk.LEFT)
+
+        scroll_grades = ttk.Scrollbar(frame_mid, orient=tk.VERTICAL, command=tree_grades.yview)
+        tree_grades.configure(yscrollcommand=scroll_grades.set)
+        scroll_grades.pack(side=tk.RIGHT, fill=tk.Y)
+
+        def load_grades():
+            for item in tree_grades.get_children():
+                tree_grades.delete(item)
+            grades_data = self.controller.get_student_grades(student_id)
+            if grades_data:
+                for row in grades_data:
+                    score_val = row[2] if row[2] is not None else "N/A"
+                    tree_grades.insert("", tk.END, values=(row[0], row[1], score_val))
+
+        def save_action():
+            selected_subject = cbo_subjects.get()
+            score_str = txt_score.get()
+            
+            if not selected_subject or not score_str:
+                messagebox.showerror("Error", "Please select a subject and enter a score!")
+                return
+                
+            try:
+                score = float(score_str)
+                if score < 0 or score > 10:
+                    messagebox.showerror("Error", "Score must be between 0 and 10!")
+                    return
+            except ValueError:
+                messagebox.showerror("Error", "Score must be a valid number!")
+                return
+                
+            subject_id = subject_dict[selected_subject]
+            if self.controller.save_grade(student_id, subject_id, score):
+                messagebox.showinfo("Success", "Grade saved successfully!")
+                load_grades() 
+                txt_score.delete(0, tk.END) 
+            else:
+                messagebox.showerror("Error", "Failed to save grade. Please try again.")
+
+        btn_save = tk.Button(frame_top, text="Save Grade", bg="#005A9E", fg="white", font=("Segoe UI", 10, "bold"), command=save_action, cursor="hand2")
+        btn_save.grid(row=1, column=2, padx=10)
+
+        load_grades()

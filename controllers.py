@@ -132,6 +132,32 @@ class StudentController:
         params = (search_pattern, search_pattern, search_pattern, search_pattern)
         raw_rows = self.db.fetch_query(query, params)
         return self._process_fetched_rows(raw_rows)
+    
+    def get_all_subjects(self) -> Optional[List[Tuple[Any, ...]]]:
+        query = "SELECT SubjectID, SubjectName FROM Subjects"
+        return self.db.fetch_query(query)
+
+    def get_student_grades(self, student_id: str) -> Optional[List[Tuple[Any, ...]]]:
+        clean_id = self._clean_text(student_id)
+        query = """
+            SELECT s.SubjectID, s.SubjectName, g.Score 
+            FROM Subjects s
+            LEFT JOIN Grades g ON s.SubjectID = g.SubjectID AND g.StudentID = ?
+        """
+        return self.db.fetch_query(query, (clean_id,))
+
+    def save_grade(self, student_id: str, subject_id: str, score: float) -> bool:
+        clean_student = self._clean_text(student_id)
+        clean_subject = self._clean_text(subject_id)
+        check_query = "SELECT 1 FROM Grades WHERE StudentID = ? AND SubjectID = ?"
+        exists = self.db.fetch_query(check_query, (clean_student, clean_subject))
+        
+        if exists:
+            update_query = "UPDATE Grades SET Score = ? WHERE StudentID = ? AND SubjectID = ?"
+            return self.db.execute_query(update_query, (score, clean_student, clean_subject))
+        else:
+            insert_query = "INSERT INTO Grades (StudentID, SubjectID, Score) VALUES (?, ?, ?)"
+            return self.db.execute_query(insert_query, (clean_student, clean_subject, score))
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
