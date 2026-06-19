@@ -8,7 +8,7 @@ from utils import DataValidator, DataExporter, DataVisualizer
 class StudentView:
     def __init__(self, root: tk.Tk):
         self.root = root
-        self.root.title("Student Management System - Developed by Tran Dang Duy An (VKU)")
+        self.root.title("Student Management System")
         self.root.geometry("1250x700")
         self.root.minsize(1000, 600)
         
@@ -94,7 +94,7 @@ class StudentView:
         util_frame.pack(fill=tk.X)
         util_frame.columnconfigure((0, 1, 2), weight=1)
         
-        tk.Button(util_frame, text="Gender Statistics", bg="#107C41", fg="white", font=("Segoe UI", 10, "bold"), command=self.show_statistics, cursor="hand2").grid(row=0, column=0, padx=5, pady=5, sticky="ew")
+        tk.Button(util_frame, text="Class Statistics", bg="#107C41", fg="white", font=("Segoe UI", 10, "bold"), command=self.show_statistics, cursor="hand2").grid(row=0, column=0, padx=5, pady=5, sticky="ew")
         tk.Button(util_frame, text="Export to Excel", bg="#0078D4", fg="white", font=("Segoe UI", 10, "bold"), command=self.export_data, cursor="hand2").grid(row=0, column=1, padx=5, pady=5, sticky="ew")
         tk.Button(util_frame, text="Manage Grades", bg="#ff9900", fg="black", font=("Segoe UI", 10, "bold"), command=self.open_grading_window, cursor="hand2").grid(row=0, column=2, padx=5, pady=5, sticky="ew")
 
