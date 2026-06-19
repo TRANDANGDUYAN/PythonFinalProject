@@ -74,8 +74,6 @@ class StudentView:
             else:
                 entry = ttk.Entry(form_frame, textvariable=var, font=("Segoe UI", 11), width=24)
                 entry.grid(row=i, column=1, pady=12, padx=10, sticky="ew")
-                if lbl == "Date of Birth:":
-                    entry.insert(0, "DD-MM-YYYY")
 
         btn_frame = tk.Frame(left_frame, pady=10)
         btn_frame.pack(fill=tk.X)
@@ -198,7 +196,7 @@ class StudentView:
             return False
             
         dob = self.var_dob.get()
-        if dob and dob != "DD-MM-YYYY":
+        if dob: # Chỉ validate nếu ô này có nhập dữ liệu
             try:
                 datetime.strptime(dob, "%d-%m-%Y")
             except ValueError:
@@ -214,10 +212,8 @@ class StudentView:
     def add_student(self):
         if not self._validate_inputs(): return
         
-        dob_val = self.var_dob.get() if self.var_dob.get() != "DD-MM-YYYY" else ""
-        
         success = self.controller.add_student(
-            self.var_id.get(), self.var_name.get(), dob_val,
+            self.var_id.get(), self.var_name.get(), self.var_dob.get(),
             self.var_gender.get(), self.var_class.get(), self.var_contact.get()
         )
         if success:
@@ -234,10 +230,8 @@ class StudentView:
             return
         if not self._validate_inputs(): return
 
-        dob_val = self.var_dob.get() if self.var_dob.get() != "DD-MM-YYYY" else ""
-
         success = self.controller.update_student(
-            self.var_id.get(), self.var_name.get(), dob_val,
+            self.var_id.get(), self.var_name.get(), self.var_dob.get(),
             self.var_gender.get(), self.var_class.get(), self.var_contact.get()
         )
         if success:
