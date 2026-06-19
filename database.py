@@ -35,7 +35,7 @@ class Database:
         if self._is_initialized:
             return
 
-        self.server: str = 'localhost' 
+        self.server: str = r'LAPTOP-2SSGG903\MSSQLSERVER2025' 
         self.database: str = 'PYTHON'
         self.driver: str = '{ODBC Driver 17 for SQL Server}'
 
@@ -51,17 +51,12 @@ class Database:
         logger.info("Database component initialized successfully.")
 
     def connect(self) -> bool:
-
         try:
-            if self.connection is None or self.connection.closed:
-                logger.debug(f"Attempting to connect to server: {self.server}...")
-
-                self.connection = pyodbc.connect(self.connection_string, timeout=5)
-                logger.info("Successfully connected to the SQL Server Database.")
+            conn_str = f"DRIVER={self.driver};SERVER={self.server};DATABASE={self.database};Trusted_Connection=yes;"
+            self.connection = pyodbc.connect(conn_str, timeout=5)
             return True
-            
-        except pyodbc.Error as db_error:
-            logger.error(f"Database Connection Error: {db_error}")
+        except Exception as e:
+            print(f"LỖI SQL THỰC SỰ LÀ: {e}") 
             return False
 
     def disconnect(self) -> None:
