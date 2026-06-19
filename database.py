@@ -1,21 +1,19 @@
 import pyodbc
 import logging
 
-# Cấu hình logging để dễ theo dõi lỗi
 logging.basicConfig(level=logging.INFO, format='%(asctime)s | %(levelname)s | %(name)s | %(message)s')
 logger = logging.getLogger("DatabaseManager")
 
-class DatabaseManager:
+class Database:
     def __init__(self):
-        # ĐỊA CHỈ SERVER: Đây là nơi bạn cần đổi nếu lỗi 08001 vẫn còn
-        # Hãy thử lần lượt: '.' hoặc 'localhost' hoặc 'LAPTOP-2SSGG903' (bỏ phần \MSSQLSERVER2025)
+
         self.server = r'LAPTOP-2SSGG903\MSSQLSERVER2025' 
         self.database = 'PYTHON'
         self.driver = '{ODBC Driver 17 for SQL Server}'
         self.connection = None
 
     def connect(self):
-        """Thiết lập kết nối với SQL Server"""
+
         try:
             conn_str = (
                 f"DRIVER={self.driver};"
@@ -33,7 +31,7 @@ class DatabaseManager:
             return False
 
     def execute_query(self, query, params=()):
-        """Dùng cho INSERT, UPDATE, DELETE"""
+
         if not self.connection:
             if not self.connect(): return False
         
