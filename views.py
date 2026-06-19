@@ -159,7 +159,7 @@ class StudentView:
     def clear_form(self):
         self.var_id.set("")
         self.var_name.set("")
-        self.var_dob.set("DD-MM-YYYY")
+        self.var_dob.set("")
         self.var_gender.set("")
         self.var_class.set("")
         self.var_contact.set("")
