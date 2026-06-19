@@ -211,7 +211,13 @@ class StudentView:
 
     def add_student(self):
         if not self._validate_inputs(): return
-        
+        if self.controller.check_student_exists(self.var_id.get()):
+            if messagebox.askyesno("Conflict", "Student ID already exists. Do you want to update this record instead?"):
+                self.update_student()
+                return
+            else:
+                return
+
         success = self.controller.add_student(
             self.var_id.get(), self.var_name.get(), self.var_dob.get(),
             self.var_gender.get(), self.var_class.get(), self.var_contact.get()
@@ -221,8 +227,7 @@ class StudentView:
             self.load_data_to_table()
             self.clear_form()
         else:
-            messagebox.showerror("Error", "Failed to add student. ID might already exist.")
-            self.set_status("Data addition error: Constraint violation.")
+            messagebox.showerror("Error", "Failed to add student.")
 
     def update_student(self):
         if not self.var_id.get():
