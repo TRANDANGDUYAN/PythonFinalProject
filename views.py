@@ -317,79 +317,137 @@ class StudentView:
 
         grade_window = tk.Toplevel(self.root)
         grade_window.title(f"Manage Grades - {student_name} ({student_id})")
-        grade_window.geometry("550x450")
+        grade_window.geometry("800x550")
         grade_window.grab_set() 
 
         frame_top = tk.Frame(grade_window, padx=15, pady=15)
         frame_top.pack(fill=tk.X)
 
         tk.Label(frame_top, text="Subject:", font=("Segoe UI", 10, "bold")).grid(row=0, column=0, pady=5, sticky=tk.W)
-        
         cbo_subjects = ttk.Combobox(frame_top, width=30, state="readonly", font=("Segoe UI", 10))
-        cbo_subjects.grid(row=0, column=1, padx=10, pady=5)
+        cbo_subjects.grid(row=0, column=1, columnspan=3, padx=10, pady=5, sticky=tk.W)
         
         subjects_data = self.controller.get_all_subjects()
         subject_dict = {}
         if subjects_data:
             subject_dict = {f"{row[0]} - {row[1]}": row[0] for row in subjects_data}
             cbo_subjects['values'] = list(subject_dict.keys())
-        
-        tk.Label(frame_top, text="Score:", font=("Segoe UI", 10, "bold")).grid(row=1, column=0, pady=5, sticky=tk.W)
-        txt_score = ttk.Entry(frame_top, width=15, font=("Segoe UI", 10))
-        txt_score.grid(row=1, column=1, padx=10, pady=5, sticky=tk.W)
+
+        tk.Label(frame_top, text="Chuyên cần (CC):", font=("Segoe UI", 10)).grid(row=1, column=0, pady=5, sticky=tk.W)
+        txt_cc = ttk.Entry(frame_top, width=10, font=("Segoe UI", 10))
+        txt_cc.grid(row=1, column=1, padx=5, pady=5, sticky=tk.W)
+
+        tk.Label(frame_top, text="Bài tập (BT - Bỏ trống nếu ko có):", font=("Segoe UI", 10)).grid(row=1, column=2, pady=5, sticky=tk.W)
+        txt_bt = ttk.Entry(frame_top, width=10, font=("Segoe UI", 10))
+        txt_bt.grid(row=1, column=3, padx=5, pady=5, sticky=tk.W)
+
+        tk.Label(frame_top, text="Giữa kỳ (GK):", font=("Segoe UI", 10)).grid(row=2, column=0, pady=5, sticky=tk.W)
+        txt_gk = ttk.Entry(frame_top, width=10, font=("Segoe UI", 10))
+        txt_gk.grid(row=2, column=1, padx=5, pady=5, sticky=tk.W)
+
+        tk.Label(frame_top, text="Cuối kỳ (CK):", font=("Segoe UI", 10)).grid(row=2, column=2, pady=5, sticky=tk.W)
+        txt_ck = ttk.Entry(frame_top, width=10, font=("Segoe UI", 10))
+        txt_ck.grid(row=2, column=3, padx=5, pady=5, sticky=tk.W)
 
         frame_mid = tk.Frame(grade_window, padx=15, pady=5)
         frame_mid.pack(fill=tk.BOTH, expand=True)
         
-        columns = ("SubjectID", "SubjectName", "Score")
-        tree_grades = ttk.Treeview(frame_mid, columns=columns, show="headings", height=10)
-        tree_grades.heading("SubjectID", text="Subject ID")
-        tree_grades.heading("SubjectName", text="Subject Name")
-        tree_grades.heading("Score", text="Score")
-        tree_grades.column("SubjectID", width=80, anchor=tk.CENTER)
-        tree_grades.column("SubjectName", width=250)
-        tree_grades.column("Score", width=100, anchor=tk.CENTER)
+        columns = ("SubjectID", "SubjectName", "CC", "BT", "GK", "CK", "Total")
+        tree_grades = ttk.Treeview(frame_mid, columns=columns, show="headings", height=8)
+        tree_grades.heading("SubjectID", text="Mã Môn")
+        tree_grades.heading("SubjectName", text="Tên Môn Học")
+        tree_grades.heading("CC", text="CC")
+        tree_grades.heading("BT", text="BT")
+        tree_grades.heading("GK", text="GK")
+        tree_grades.heading("CK", text="CK")
+        tree_grades.heading("Total", text="Tổng Kết")
+        
+        tree_grades.column("SubjectID", width=70, anchor=tk.CENTER)
+        tree_grades.column("SubjectName", width=220)
+        tree_grades.column("CC", width=50, anchor=tk.CENTER)
+        tree_grades.column("BT", width=50, anchor=tk.CENTER)
+        tree_grades.column("GK", width=50, anchor=tk.CENTER)
+        tree_grades.column("CK", width=50, anchor=tk.CENTER)
+        tree_grades.column("Total", width=70, anchor=tk.CENTER)
+        
         tree_grades.pack(fill=tk.BOTH, expand=True, side=tk.LEFT)
 
         scroll_grades = ttk.Scrollbar(frame_mid, orient=tk.VERTICAL, command=tree_grades.yview)
         tree_grades.configure(yscrollcommand=scroll_grades.set)
         scroll_grades.pack(side=tk.RIGHT, fill=tk.Y)
 
+        frame_bottom = tk.Frame(grade_window, padx=15, pady=10)
+        frame_bottom.pack(fill=tk.X)
+        lbl_gpa = tk.Label(frame_bottom, text="GPA Tích lũy: N/A", font=("Segoe UI", 12, "bold"), fg="#D83B01")
+        lbl_gpa.pack(side=tk.LEFT)
+
         def load_grades():
             for item in tree_grades.get_children():
                 tree_grades.delete(item)
             grades_data = self.controller.get_student_grades(student_id)
+            
+            total_sum = 0
+            count = 0
+
             if grades_data:
                 for row in grades_data:
-                    score_val = row[2] if row[2] is not None else "N/A"
-                    tree_grades.insert("", tk.END, values=(row[0], row[1], score_val))
+                    subj_id, subj_name, cc, bt, gk, ck, total = row
+                    
+                    cc_val = cc if cc is not None else "-"
+                    bt_val = bt if bt is not None else "-"
+                    gk_val = gk if gk is not None else "-"
+                    ck_val = ck if ck is not None else "-"
+                    total_val = total if total is not None else "-"
+                    
+                    if total is not None:
+                        total_sum += total
+                        count += 1
+
+                    tree_grades.insert("", tk.END, values=(subj_id, subj_name, cc_val, bt_val, gk_val, ck_val, total_val))
+
+            if count > 0:
+                gpa = round(total_sum / count, 2)
+                lbl_gpa.config(text=f"GPA Tích lũy: {gpa} / 10")
+            else:
+                lbl_gpa.config(text="GPA Tích lũy: N/A")
 
         def save_action():
             selected_subject = cbo_subjects.get()
-            score_str = txt_score.get()
+            cc_str = txt_cc.get().strip()
+            bt_str = txt_bt.get().strip()
+            gk_str = txt_gk.get().strip()
+            ck_str = txt_ck.get().strip()
             
-            if not selected_subject or not score_str:
-                messagebox.showerror("Error", "Please select a subject and enter a score!")
+            if not selected_subject or not cc_str or not gk_str or not ck_str:
+                messagebox.showerror("Error", "Vui lòng nhập đủ điểm CC, GK và CK! (Bài tập có thể để trống)")
                 return
                 
             try:
-                score = float(score_str)
-                if score < 0 or score > 10:
-                    messagebox.showerror("Error", "Score must be between 0 and 10!")
-                    return
+                cc = float(cc_str)
+                gk = float(gk_str)
+                ck = float(ck_str)
+                bt = float(bt_str) if bt_str else None
+                
+                for score in [s for s in (cc, bt, gk, ck) if s is not None]:
+                    if score < 0 or score > 10:
+                        messagebox.showerror("Error", "Điểm số phải từ 0 đến 10!")
+                        return
             except ValueError:
-                messagebox.showerror("Error", "Score must be a valid number!")
+                messagebox.showerror("Error", "Điểm số phải là số hợp lệ!")
                 return
                 
             subject_id = subject_dict[selected_subject]
-            if self.controller.save_grade(student_id, subject_id, score):
-                messagebox.showinfo("Success", "Grade saved successfully!")
+            if self.controller.save_grade(student_id, subject_id, cc, bt, gk, ck):
+                messagebox.showinfo("Success", "Lưu điểm thành công!")
                 load_grades() 
-                txt_score.delete(0, tk.END) 
+                txt_cc.delete(0, tk.END)
+                txt_bt.delete(0, tk.END)
+                txt_gk.delete(0, tk.END)
+                txt_ck.delete(0, tk.END)
             else:
-                messagebox.showerror("Error", "Failed to save grade. Please try again.")
+                messagebox.showerror("Error", "Không thể lưu điểm. Thử lại sau.")
 
-        btn_save = tk.Button(frame_top, text="Save Grade", bg="#005A9E", fg="white", font=("Segoe UI", 10, "bold"), command=save_action, cursor="hand2")
-        btn_save.grid(row=1, column=2, padx=10)
+        btn_save = tk.Button(frame_top, text="Lưu Bảng Điểm", bg="#005A9E", fg="white", font=("Segoe UI", 10, "bold"), command=save_action, cursor="hand2")
+        btn_save.grid(row=2, column=4, padx=15, sticky=tk.S)
 
         load_grades()

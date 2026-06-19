@@ -132,7 +132,7 @@ class StudentController:
         params = (search_pattern, search_pattern, search_pattern, search_pattern)
         raw_rows = self.db.fetch_query(query, params)
         return self._process_fetched_rows(raw_rows)
-    
+
     def get_all_subjects(self) -> Optional[List[Tuple[Any, ...]]]:
         query = "SELECT SubjectID, SubjectName FROM Subjects"
         return self.db.fetch_query(query)
@@ -140,24 +140,51 @@ class StudentController:
     def get_student_grades(self, student_id: str) -> Optional[List[Tuple[Any, ...]]]:
         clean_id = self._clean_text(student_id)
         query = """
-            SELECT s.SubjectID, s.SubjectName, g.Score 
+            SELECT s.SubjectID, s.SubjectName, 
+                   g.AttendanceScore, g.AssignmentScore, g.MidtermScore, g.FinalScore
             FROM Subjects s
             LEFT JOIN Grades g ON s.SubjectID = g.SubjectID AND g.StudentID = ?
         """
-        return self.db.fetch_query(query, (clean_id,))
+        raw_grades = self.db.fetch_query(query, (clean_id,))
+        
+        if not raw_grades:
+            return []
 
-    def save_grade(self, student_id: str, subject_id: str, score: float) -> bool:
+        processed = []
+        for row in raw_grades:
+            subj_id, subj_name, cc, bt, gk, ck = row
+            total = None
+            
+            if cc is not None and gk is not None and ck is not None:
+                if bt is not None: 
+                    total = round(cc * 0.1 + bt * 0.2 + gk * 0.2 + ck * 0.5, 2)
+                else: 
+                    total = round(cc * 0.2 + gk * 0.2 + ck * 0.6, 2)
+                    
+            processed.append((subj_id, subj_name, cc, bt, gk, ck, total))
+            
+        return processed
+
+    def save_grade(self, student_id: str, subject_id: str, cc: float, bt: Optional[float], gk: float, ck: float) -> bool:
         clean_student = self._clean_text(student_id)
         clean_subject = self._clean_text(subject_id)
+        
         check_query = "SELECT 1 FROM Grades WHERE StudentID = ? AND SubjectID = ?"
         exists = self.db.fetch_query(check_query, (clean_student, clean_subject))
         
         if exists:
-            update_query = "UPDATE Grades SET Score = ? WHERE StudentID = ? AND SubjectID = ?"
-            return self.db.execute_query(update_query, (score, clean_student, clean_subject))
+            update_query = """
+                UPDATE Grades 
+                SET AttendanceScore = ?, AssignmentScore = ?, MidtermScore = ?, FinalScore = ? 
+                WHERE StudentID = ? AND SubjectID = ?
+            """
+            return self.db.execute_query(update_query, (cc, bt, gk, ck, clean_student, clean_subject))
         else:
-            insert_query = "INSERT INTO Grades (StudentID, SubjectID, Score) VALUES (?, ?, ?)"
-            return self.db.execute_query(insert_query, (clean_student, clean_subject, score))
+            insert_query = """
+                INSERT INTO Grades (StudentID, SubjectID, AttendanceScore, AssignmentScore, MidtermScore, FinalScore) 
+                VALUES (?, ?, ?, ?, ?, ?)
+            """
+            return self.db.execute_query(insert_query, (clean_student, clean_subject, cc, bt, gk, ck))
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
