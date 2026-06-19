@@ -211,21 +211,28 @@ class StudentView:
 
     def add_student(self):
         if not self._validate_inputs(): return
+        if self.controller.check_student_exists(self.var_id.get()):
+            messagebox.showerror("Lỗi ID", "Mã sinh viên này ĐÃ TỒN TẠI trong database!")
+            return
+        dob = self.var_dob.get()
+        if dob:
+            try:
+                datetime.strptime(dob, "%d-%m-%Y")
+            except ValueError:
+                messagebox.showerror("Lỗi Ngày tháng", "Ngày tháng nhập sai định dạng DD-MM-YYYY!")
+                return
 
-        try:
-            success = self.controller.add_student(
-                self.var_id.get(), self.var_name.get(), self.var_dob.get(),
-                self.var_gender.get(), self.var_class.get(), self.var_contact.get()
-            )
-            
-            if success:
-                messagebox.showinfo("Success", "Student added successfully!")
-                self.load_data_to_table()
-                self.clear_form()
-            else:
-                messagebox.showerror("Error", "Could not add student. Check if the ID already exists or if dates are correct.")
-        except Exception as e:
-            messagebox.showerror("Database Error", f"Details: {str(e)}")
+        success = self.controller.add_student(
+            self.var_id.get(), self.var_name.get(), dob,
+            self.var_gender.get(), self.var_class.get(), self.var_contact.get()
+        )
+        
+        if success:
+            messagebox.showinfo("Success", "Thêm thành công!")
+            self.load_data_to_table()
+            self.clear_form()
+        else:
+            messagebox.showerror("Lỗi Database", "Lỗi không xác định. Kiểm tra lại kết nối SQL!")
 
     def update_student(self):
         if not self.var_id.get():
