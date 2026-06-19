@@ -185,7 +185,7 @@ class StudentController:
                 VALUES (?, ?, ?, ?, ?, ?)
             """
             return self.db.execute_query(insert_query, (clean_student, clean_subject, cc, bt, gk, ck))
-
+        
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     controller = StudentController()
