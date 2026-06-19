@@ -211,23 +211,21 @@ class StudentView:
 
     def add_student(self):
         if not self._validate_inputs(): return
-        if self.controller.check_student_exists(self.var_id.get()):
-            if messagebox.askyesno("Conflict", "Student ID already exists. Do you want to update this record instead?"):
-                self.update_student()
-                return
-            else:
-                return
 
-        success = self.controller.add_student(
-            self.var_id.get(), self.var_name.get(), self.var_dob.get(),
-            self.var_gender.get(), self.var_class.get(), self.var_contact.get()
-        )
-        if success:
-            messagebox.showinfo("Success", f"Student {self.var_name.get()} added successfully.")
-            self.load_data_to_table()
-            self.clear_form()
-        else:
-            messagebox.showerror("Error", "Failed to add student.")
+        try:
+            success = self.controller.add_student(
+                self.var_id.get(), self.var_name.get(), self.var_dob.get(),
+                self.var_gender.get(), self.var_class.get(), self.var_contact.get()
+            )
+            
+            if success:
+                messagebox.showinfo("Success", "Student added successfully!")
+                self.load_data_to_table()
+                self.clear_form()
+            else:
+                messagebox.showerror("Error", "Could not add student. Check if the ID already exists or if dates are correct.")
+        except Exception as e:
+            messagebox.showerror("Database Error", f"Details: {str(e)}")
 
     def update_student(self):
         if not self.var_id.get():
