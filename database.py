@@ -7,7 +7,7 @@ logger = logging.getLogger("DatabaseManager")
 class Database:
     def __init__(self):
 
-        self.server = 'LAPTOP-2SSGG903' 
+        self.server = r'LAPTOP-2SSGG903\MSSQLSERVER2025' 
         self.database = 'PYTHON'
         self.driver = '{ODBC Driver 17 for SQL Server}'
         self.connection = None
@@ -29,6 +29,12 @@ class Database:
             logger.info("Gợi ý: Kiểm tra lại tên server trong file database.py hoặc trạng thái SQL Server Service.")
             self.connection = None
             return False
+        
+    def disconnect(self):
+        if self.connection:
+            self.connection.close()
+            self.connection = None
+            logger.info("Database disconnected.")
 
     def execute_query(self, query, params=()):
 
